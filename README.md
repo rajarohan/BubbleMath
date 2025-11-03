@@ -11,7 +11,6 @@ How to run
 
 ```bash
 # from macOS zsh terminal
-cd '/Users/rajarohanvaidyula/Documents/Playground/Games/Bubble Math'
 python3 -m http.server 8000
 # then open http://localhost:8000 in your browser
 ```
