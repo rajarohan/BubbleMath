@@ -31,6 +31,8 @@ body{
 .start-content{text-align:center;padding:40px;background:var(--card);border-radius:20px;box-shadow:0 20px 40px rgba(2,6,23,0.8)}
 .start-content h2{margin:0 0 16px;font-size:32px;color:var(--accent)}
 .start-content p{margin:0 0 24px;color:var(--muted);font-size:16px}
+.final-score{font-size:28px;font-weight:700;color:var(--accent);margin:20px 0}
+.score-message{font-size:18px;color:var(--good);margin:16px 0 24px}
 .start-screen.hidden{display:none}
 .bubbles{position:absolute;inset:0;pointer-events:none}
 .bubble{pointer-events:auto;position:absolute;border-radius:999px;border:0;padding:18px 22px;font-size:20px;background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));color:#fff;box-shadow:0 8px 20px rgba(2,6,23,0.5);cursor:pointer;transition:all .3s ease}

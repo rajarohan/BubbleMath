@@ -10,6 +10,10 @@
   const startScreen = document.getElementById('startScreen')
   const startBtn = document.getElementById('startBtn')
   const resetBtn = document.getElementById('resetBtn')
+  const completionScreen = document.getElementById('completionScreen')
+  const playAgainBtn = document.getElementById('playAgainBtn')
+  const finalScoreEl = document.getElementById('finalScore')
+  const scoreMessageEl = document.getElementById('scoreMessage')
 
   let score = 0
   let level = 1
@@ -149,7 +153,33 @@
   function startGame(){
     gameStarted = true
     startScreen.classList.add('hidden')
+    completionScreen.classList.add('hidden')
     startLevel()
+  }
+
+  function showCompletionScreen(){
+    gameStarted = false
+    accepting = false
+    if(timerInterval) clearInterval(timerInterval)
+    
+    // show completion screen with final score
+    finalScoreEl.textContent = score
+    
+    // personalized message based on score
+    let message = "Great job!"
+    if(score >= 23) message = "Outstanding! Nearly perfect! 🌟"
+    else if(score >= 20) message = "Excellent work! 🎯"
+    else if(score >= 15) message = "Well done! 👏"
+    else if(score >= 10) message = "Good effort! Keep practicing! 💪"
+    else message = "Nice try! Every attempt makes you better! 🚀"
+    
+    scoreMessageEl.textContent = message
+    completionScreen.classList.remove('hidden')
+    
+    // play celebration sound
+    playTone(523, 0.2) // C note
+    setTimeout(() => playTone(659, 0.2), 200) // E note
+    setTimeout(() => playTone(784, 0.3), 400) // G note
   }
 
   function resetGame(){
@@ -174,7 +204,8 @@
       btn.style.transform = ''
     })
     
-    // show start screen
+    // hide completion screen and show start screen
+    completionScreen.classList.add('hidden')
     startScreen.classList.remove('hidden')
   }
 
@@ -182,7 +213,7 @@
     if (!gameStarted) return
     accepting = true
     clickedSequence = [] // reset click tracking
-    timeLimit = Math.max(5, 15 - (level-1)*0.5) // get slightly faster each level, min 5s
+    timeLimit = 15.0 // keep constant 15 seconds for all levels
     timeLeft = timeLimit
     timeEl.textContent = timeLeft.toFixed(1)
     levelEl.textContent = level
@@ -259,7 +290,13 @@
       evaluateSequence()
     } else {
       showFeedback(false)
-      setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
+      
+      // check if game is complete
+      if(level >= MAX_LEVEL){
+        setTimeout(() => showCompletionScreen(), 900)
+      } else {
+        setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
+      }
     }
   }
 
@@ -304,10 +341,22 @@
       score += 1
       scoreEl.textContent = score
       showFeedback(true)
-      setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 700)
+      
+      // check if game is complete
+      if(level >= MAX_LEVEL){
+        setTimeout(() => showCompletionScreen(), 700)
+      } else {
+        setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 700)
+      }
     } else {
       showFeedback(false)
-      setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
+      
+      // check if game is complete
+      if(level >= MAX_LEVEL){
+        setTimeout(() => showCompletionScreen(), 900)
+      } else {
+        setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
+      }
     }
   }
 
@@ -351,6 +400,7 @@
   bubbleButtons.forEach(b=>b.addEventListener('click', handleBubbleClick))
   startBtn.addEventListener('click', startGame)
   resetBtn.addEventListener('click', resetGame)
+  playAgainBtn.addEventListener('click', resetGame)
 
   // initial setup - show start screen
   resetGame()
