@@ -1,0 +1,52 @@
+:root{
+  --bg: #0f1724;
+  --card: #0b1220cc;
+  --accent: #00d4ff;
+  --good: #26d07b;
+  --bad: #ff5c6c;
+  --muted: #9aa4b2;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(180deg,#081021 0%, #0f1724 100%);color:#e6eef6;display:flex;align-items:center;justify-content:center;}
+.game-wrap{width:100%;max-width:1100px;padding:24px}
+.hud{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.hud .score,.hud .level{font-weight:600;background:rgba(255,255,255,0.04);padding:8px 12px;border-radius:10px}
+.nav-section{display:flex;justify-content:center;align-items:center;margin-bottom:16px;padding:16px 0;background:var(--card);backdrop-filter:blur(6px);border-radius:12px}
+.nav-content{text-align:center}
+.nav-line{font-size:24px;font-weight:700;color:#fff}
+.nav-line.small{font-size:14px;color:var(--muted);margin-top:4px;font-weight:400}
+.timer-section{display:flex;gap:16px;align-items:center;justify-content:center;margin-bottom:18px;padding:12px 0}
+.timer-section .time-left{font-size:18px;font-weight:600;color:var(--accent)}
+.timer-section .timer-bar-wrap{width:300px;height:14px;background:rgba(255,255,255,0.06);border-radius:8px;overflow:hidden}
+.timer-section .timer-bar{height:100%;width:100%;background:linear-gradient(90deg,var(--accent),#8bdcff);transform-origin:left}
+.stage{position:relative;height:480px;border-radius:18px;overflow:hidden;background:radial-gradient(1200px 600px at 20% 20%, rgba(0,212,255,0.05), transparent), linear-gradient(180deg, rgba(255,255,255,0.02), transparent);}
+.bubbles{position:absolute;inset:0;pointer-events:none}
+.bubble{pointer-events:auto;position:absolute;border-radius:999px;border:0;padding:18px 22px;font-size:20px;background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));color:#fff;box-shadow:0 8px 20px rgba(2,6,23,0.5);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.bubble:active{transform:scale(.95)}
+.bubble.big{padding:22px 26px;font-size:22px}
+
+/* floating variants */
+@keyframes floatY{0%{transform:translateY(0)}50%{transform:translateY(-18px)}100%{transform:translateY(0)}}
+@keyframes floatX{0%{transform:translateX(0)}50%{transform:translateX(12px)}100%{transform:translateX(0)}}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:40;opacity:0;transition:opacity .18s}
+.flash.show-correct{background:linear-gradient(90deg, rgba(38,208,123,0.12), rgba(38,208,123,0.06));opacity:1}
+.flash.show-wrong{background:linear-gradient(90deg, rgba(255,92,108,0.12), rgba(255,92,108,0.06));opacity:1}
+
+.notes{margin-top:12px;text-align:center;color:var(--muted)}
+
+/* positions for three bubbles roughly around center-box */
+.bubble{font-weight:600}
+.bubble[data-id="0"]{left:14%;top:16%;width:150px;height:150px;border-radius:75px;animation:floatY 4.3s ease-in-out infinite;font-size:20px}
+.bubble[data-id="1"]{right:12%;top:12%;width:180px;height:180px;border-radius:90px;animation:floatX 5.2s ease-in-out infinite;font-size:22px}
+.bubble[data-id="2"]{left:36%;bottom:12%;width:164px;height:164px;border-radius:82px;animation:floatY 4.7s ease-in-out infinite;font-size:20px}
+
+/* small responsive tweaks */
+@media (max-width:720px){
+  .center-box{width:300px;height:200px}
+  .bubble{width:120px;height:120px;font-size:16px}
+  .bubble[data-id="1"]{width:140px;height:140px}
+  .bubble[data-id="0"]{left:12%;top:10%}
+  .bubble[data-id="2"]{left:34%;bottom:8%}
+}

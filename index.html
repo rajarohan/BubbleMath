@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Math Bubbles — Basic Expression Game</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div class="game-wrap">
+      <header class="hud">
+        <div class="score">Score: <span id="score">0</span></div>
+        <div class="level">Level: <span id="level">1</span></div>
+      </header>
+
+      <nav class="nav-section">
+        <div class="nav-content">
+          <div class="nav-line">Math Bubbles</div>
+          <div class="nav-line small">Click in order: Lowest → Middle → Highest</div>
+        </div>
+      </nav>
+
+      <div class="timer-section">
+        <div class="time-left">Time: <span id="time">15.0</span>s</div>
+        <div class="timer-bar-wrap">
+          <div id="timerBar" class="timer-bar"></div>
+        </div>
+      </div>
+
+      <main class="stage">
+        <div id="bubbles" class="bubbles">
+          <button class="bubble" data-id="0">?</button>
+          <button class="bubble" data-id="1">?</button>
+          <button class="bubble" data-id="2">?</button>
+        </div>
+      </main>
+
+      <div id="flash" class="flash"></div>
+
+      <footer class="notes">
+        <small>Expressions use integers 1–20. Division chooses divisors so result is whole when possible; squared uses n².</small>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
