@@ -7,9 +7,13 @@
   const bubblesWrap = document.getElementById('bubbles')
   const bubbleButtons = Array.from(document.querySelectorAll('.bubble'))
   const flash = document.getElementById('flash')
+  const startScreen = document.getElementById('startScreen')
+  const startBtn = document.getElementById('startBtn')
+  const resetBtn = document.getElementById('resetBtn')
 
   let score = 0
   let level = 1
+  let gameStarted = false
   const MAX_LEVEL = 25
   let timeLimit = 15.0 // seconds (will reduce slightly as levels increase)
   let timeLeft = timeLimit
@@ -115,7 +119,39 @@
     })
   }
 
+  function startGame(){
+    gameStarted = true
+    startScreen.classList.add('hidden')
+    startLevel()
+  }
+
+  function resetGame(){
+    gameStarted = false
+    score = 0
+    level = 1
+    accepting = false
+    if(timerInterval) clearInterval(timerInterval)
+    
+    // reset UI
+    scoreEl.textContent = score
+    levelEl.textContent = level
+    timeEl.textContent = '15.0'
+    timerBar.style.width = '100%'
+    
+    // reset bubbles
+    bubbleButtons.forEach(btn => {
+      btn.textContent = '?'
+      btn.classList.remove('selected', 'disabled')
+      btn.disabled = false
+      btn.style.transform = ''
+    })
+    
+    // show start screen
+    startScreen.classList.remove('hidden')
+  }
+
   function startLevel(){
+    if (!gameStarted) return
     accepting = true
     timeLimit = Math.max(5, 15 - (level-1)*0.5) // get slightly faster each level, min 5s
     timeLeft = timeLimit
@@ -247,11 +283,13 @@
 
   // wire events
   bubbleButtons.forEach(b=>b.addEventListener('click', handleBubbleClick))
+  startBtn.addEventListener('click', startGame)
+  resetBtn.addEventListener('click', resetGame)
 
-  // initial placement + start
-  startLevel()
+  // initial setup - show start screen
+  resetGame()
 
   // expose for debugging on window
-  window.MathBubbles = {startLevel}
+  window.MathBubbles = {startGame, resetGame, startLevel}
 
 })();

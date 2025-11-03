@@ -11,6 +11,7 @@
       <header class="hud">
         <div class="score">Score: <span id="score">0</span></div>
         <div class="level">Level: <span id="level">1</span></div>
+        <button id="resetBtn" class="game-btn reset-btn">Reset Game</button>
       </header>
 
       <nav class="nav-section">
@@ -28,6 +29,14 @@
       </div>
 
       <main class="stage">
+        <div id="startScreen" class="start-screen">
+          <div class="start-content">
+            <h2>Ready to Play?</h2>
+            <p>Click bubbles in order: Lowest → Middle → Highest</p>
+            <button id="startBtn" class="game-btn start-btn">Start Game</button>
+          </div>
+        </div>
+        
         <div id="bubbles" class="bubbles">
           <button class="bubble" data-id="0">?</button>
           <button class="bubble" data-id="1">?</button>
