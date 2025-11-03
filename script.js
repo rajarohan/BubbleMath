@@ -20,6 +20,7 @@
   let timerInterval = null
   let currentSet = [] // {expr, value, id}
   let accepting = true
+  let clickedSequence = [] // track order of clicks
 
   // utilities
   function randInt(min, max){ return Math.floor(Math.random()*(max-min+1))+min }
@@ -32,75 +33,101 @@
 
     // determine operand ranges based on level - keep operations simple but numbers larger
     function rangesForLevel(l){
-      if(l <= 10) return {min:1, max:20, type: 'small'}
-      if(l <= 20) return {min:1, max:99, type: 'med'}
-      // levels 21-25: use larger numbers but keep operations basic
-      return {min:1, max:999, type: 'large'}
+      if(l <= 5) return {min:1, max:20, type: 'small', allowDecimals: false}
+      if(l <= 10) return {min:1, max:30, type: 'small', allowDecimals: true}
+      if(l <= 15) return {min:5, max:50, type: 'med', allowDecimals: true}
+      if(l <= 20) return {min:10, max:80, type: 'med', allowDecimals: true}
+      // levels 21-25: larger range but results should still be close
+      return {min:20, max:150, type: 'large', allowDecimals: true}
     }
 
     const r = rangesForLevel(currentLevel)
 
     if(op === '²'){
-      // keep squares reasonable even at high levels
-      let maxSquareBase = 15
-      if(r.type === 'med') maxSquareBase = 12
-      if(r.type === 'large') maxSquareBase = 20
-      const n = randInt(2, maxSquareBase)
+      // keep squares reasonable and results closer together
+      let maxSquareBase = Math.min(Math.floor(Math.sqrt(r.max * 0.8)), 12)
+      let minSquareBase = Math.max(2, Math.floor(Math.sqrt(r.min)))
+      const n = randInt(minSquareBase, maxSquareBase)
       return {text: `${n}²`, value: n*n}
     }
 
-    // for high levels, strategically pick numbers to keep basic operations
     let a, b
-    if(r.type === 'large'){
-      // for large numbers, use simpler combinations to keep mental math doable
-      if(op === '×'){
-        // multiplication: use smaller numbers or nice round numbers
-        if(Math.random() < 0.5){
-          a = randInt(100, 999)
-          b = randInt(2, 9) // multiply large number by single digit
-        } else {
-          a = randInt(10, 99) 
-          b = randInt(10, 99) // two 2-digit numbers
-        }
-      } else if(op === '÷'){
-        // division: ensure clean division with larger numbers
-        b = randInt(2, 20)
-        a = b * randInt(10, 50) // ensure a is divisible by b
+    
+    // Generate numbers with constraints to avoid problematic operations
+    if(op === '×'){
+      // avoid multiplying by self, 0, or 1
+      if(r.type === 'large'){
+        a = randInt(r.min, Math.min(r.max, 50))
+        do {
+          b = randInt(2, 8) // keep multiplier small for reasonable results
+        } while(b === a || b === 0 || b === 1)
       } else {
-        // addition/subtraction: use mix of large and small numbers
-        if(Math.random() < 0.5){
-          a = randInt(100, 999)
-          b = randInt(1, 99)
+        a = randInt(r.min, r.max)
+        do {
+          b = randInt(2, Math.min(r.max, 15))
+        } while(b === a || b === 0 || b === 1)
+      }
+    } else if(op === '÷'){
+      // division: ensure clean division, avoid dividing by 1, 0, or self
+      let attempts = 0
+      do {
+        if(r.allowDecimals && Math.random() < 0.4){
+          // allow some decimal results after level 5
+          a = randInt(r.min, r.max)
+          b = randInt(2, Math.min(20, Math.floor(r.max/2)))
         } else {
-          a = randInt(10, 99)
-          b = randInt(100, 999)
+          // prefer integer results
+          b = randInt(2, Math.min(20, Math.floor(r.max/2)))
+          const multiplier = randInt(2, Math.floor(r.max/b))
+          a = b * multiplier
         }
+        attempts++
+      } while((b === 0 || b === 1 || b === a) && attempts < 10)
+      
+      // fallback if we can't find good numbers
+      if(b === 0 || b === 1 || b === a){
+        b = randInt(2, 5)
+        a = b * randInt(3, 8)
       }
     } else {
-      // for small/med levels, use normal ranges
-      a = randInt(r.min, r.max)
-      b = randInt(r.min, r.max)
+      // addition/subtraction: choose numbers to keep results in reasonable range
+      const targetRange = r.max - r.min
+      const halfRange = targetRange / 2
       
-      // for division, try to find clean divisors
-      if(op === '÷'){
-        const divisors = []
-        for(let d=1; d<=r.max && d<=a; d++){ 
-          if(a % d === 0) divisors.push(d) 
-        }
-        if(divisors.length > 1){ 
-          b = divisors[randInt(1, divisors.length-1)] // avoid dividing by 1
+      if(op === '+'){
+        // for addition, keep both numbers smaller to avoid huge sums
+        const maxA = Math.min(r.max, r.min + halfRange)
+        const maxB = Math.min(r.max, r.min + halfRange)
+        a = randInt(r.min, maxA)
+        b = randInt(r.min, maxB)
+      } else {
+        // for subtraction, ensure positive result and reasonable range
+        a = randInt(r.min + halfRange, r.max)
+        b = randInt(r.min, Math.min(a - 1, r.min + halfRange))
+      }
+    }
+
+    // add decimal variations for levels 6+
+    if(r.allowDecimals && currentLevel > 5 && Math.random() < 0.3){
+      if(op === '+' || op === '-'){
+        // occasionally use decimal for one operand
+        if(Math.random() < 0.5){
+          a = Math.round(a * 10 + randInt(1, 9)) / 10 // add .1 to .9
+        } else {
+          b = Math.round(b * 10 + randInt(1, 9)) / 10
         }
       }
     }
 
     // generate the expression
     if(op === '÷'){
-      return {text: `${a} ÷ ${b}`, value: Math.round((a / b) * 100) / 100} // round to 2 decimals max
+      const result = a / b
+      return {text: `${a} ÷ ${b}`, value: Math.round(result * 100) / 100} // round to 2 decimals max
     }
-    if(op === '×') return {text: `${a} × ${b}`, value: a * b}
-    if(op === '+') return {text: `${a} + ${b}`, value: a + b}
+    if(op === '×') return {text: `${a} × ${b}`, value: Math.round((a * b) * 100) / 100}
+    if(op === '+') return {text: `${a} + ${b}`, value: Math.round((a + b) * 100) / 100}
     // '-'
-    return {text: `${a} - ${b}`, value: a - b}
+    return {text: `${a} - ${b}`, value: Math.round((a - b) * 100) / 100}
   }
 
   function shuffle(arr){
@@ -130,6 +157,7 @@
     score = 0
     level = 1
     accepting = false
+    clickedSequence = []
     if(timerInterval) clearInterval(timerInterval)
     
     // reset UI
@@ -153,17 +181,43 @@
   function startLevel(){
     if (!gameStarted) return
     accepting = true
+    clickedSequence = [] // reset click tracking
     timeLimit = Math.max(5, 15 - (level-1)*0.5) // get slightly faster each level, min 5s
     timeLeft = timeLimit
     timeEl.textContent = timeLeft.toFixed(1)
     levelEl.textContent = level
 
-    // generate three distinct expressions suited to this level
+    // generate three distinct expressions with values reasonably close together
     currentSet = []
-    while(currentSet.length < 3){
+    let attempts = 0
+    while(currentSet.length < 3 && attempts < 50){
       const expr = genExpression(level)
-      // avoid duplicate text
-      if(!currentSet.some(e=>e.text===expr.text)) currentSet.push(Object.assign({},expr))
+      // avoid duplicate text and ensure values aren't too spread out
+      if(!currentSet.some(e=>e.text===expr.text)) {
+        currentSet.push(Object.assign({},expr))
+        
+        // if we have 3 expressions, check if values are reasonably close
+        if(currentSet.length === 3){
+          const values = currentSet.map(e => e.value).sort((a,b) => a-b)
+          const range = values[2] - values[0]
+          const maxRange = level <= 5 ? 50 : level <= 10 ? 100 : level <= 15 ? 200 : 300
+          
+          // if values are too spread out, try again
+          if(range > maxRange){
+            currentSet = []
+          }
+        }
+      }
+      attempts++
+    }
+    
+    // fallback if we couldn't generate good expressions
+    if(currentSet.length < 3){
+      currentSet = []
+      while(currentSet.length < 3){
+        const expr = genExpression(level)
+        if(!currentSet.some(e=>e.text===expr.text)) currentSet.push(Object.assign({},expr))
+      }
     }
 
     // assign to buttons shuffled
@@ -200,49 +254,59 @@
 
   function onTimeUp(){
     accepting = false
-    showFeedback(false)
-    // move to next level (no score)
-    setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
+    // if incomplete sequence, evaluate what was clicked
+    if(clickedSequence.length > 0 && clickedSequence.length < 3) {
+      evaluateSequence()
+    } else {
+      showFeedback(false)
+      setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
+    }
   }
 
-  function evaluateSelection(){
-    // map current visible buttons to their numeric values and sort
-    const vals = bubbleButtons.map(b=>({el:b, v: parseFloat(b.dataset.value)}))
-    const sorted = [...vals].sort((a,b)=>a.v-b.v)
-    return sorted // lowest to highest
-  }
+
 
   function handleBubbleClick(e){
     if(!accepting) return
     const clicked = e.currentTarget
-    const expectedOrder = evaluateSelection()
-    // find index among non-disabled buttons of clicked
-    const nextExpected = expectedOrder.findIndex(x=> !x.el.classList.contains('disabled'))
-    const expectedEl = expectedOrder[nextExpected].el
+    
+    // prevent clicking the same bubble twice
+    if(clicked.disabled) return
+    
+    // record this click
+    clickedSequence.push(clicked)
+    
+    // visual feedback for clicked bubble
+    clicked.classList.add('disabled')
+    clicked.disabled = true
+    
+    // soft click sound
+    playTone(300, 0.05)
 
-    if(clicked === expectedEl){
-      // correct - add visual feedback immediately
-      clicked.classList.add('disabled')
-      clicked.disabled = true
-      
-      // play success sound for each correct click
-      playTone(400 + (bubbleButtons.filter(b=>b.disabled).length * 100), 0.1)
-
-      // if that was the last (all disabled), success
-      const allDisabled = bubbleButtons.every(b=>b.disabled)
-      if(allDisabled){
-        accepting = false
-        score += 1
-        scoreEl.textContent = score
-        showFeedback(true)
-        clearInterval(timerInterval)
-        setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 700)
-      }
-    } else {
-      // wrong selection
+    // if all three bubbles clicked, evaluate the sequence
+    if(clickedSequence.length === 3){
       accepting = false
-      showFeedback(false)
       clearInterval(timerInterval)
+      setTimeout(() => evaluateSequence(), 300) // small delay for visual feedback
+    }
+  }
+
+  function evaluateSequence(){
+    // get the correct order (lowest to highest values)
+    const correctOrder = bubbleButtons
+      .map(b => ({el: b, value: parseFloat(b.dataset.value)}))
+      .sort((a, b) => a.value - b.value)
+      .map(item => item.el)
+    
+    // check if clicked sequence matches correct order
+    const isCorrect = clickedSequence.every((clickedEl, index) => clickedEl === correctOrder[index])
+    
+    if(isCorrect){
+      score += 1
+      scoreEl.textContent = score
+      showFeedback(true)
+      setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 700)
+    } else {
+      showFeedback(false)
       setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 900)
     }
   }
