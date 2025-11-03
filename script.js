@@ -174,6 +174,7 @@
       btn.dataset.value = data.value
       btn.classList.remove('selected','disabled')
       btn.disabled = false
+      btn.style.transform = '' // reset any scaling
     })
 
     // start timer
@@ -220,11 +221,12 @@
     const expectedEl = expectedOrder[nextExpected].el
 
     if(clicked === expectedEl){
-      // correct
+      // correct - add visual feedback immediately
       clicked.classList.add('disabled')
-      clicked.style.transform = 'scale(0.9)'
-      // disable pointer
       clicked.disabled = true
+      
+      // play success sound for each correct click
+      playTone(400 + (bubbleButtons.filter(b=>b.disabled).length * 100), 0.1)
 
       // if that was the last (all disabled), success
       const allDisabled = bubbleButtons.every(b=>b.disabled)
@@ -234,7 +236,7 @@
         scoreEl.textContent = score
         showFeedback(true)
         clearInterval(timerInterval)
-          setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 700)
+        setTimeout(()=>{ level = Math.min(MAX_LEVEL, level + 1); startLevel() }, 700)
       }
     } else {
       // wrong selection

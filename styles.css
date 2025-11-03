@@ -33,8 +33,11 @@ body{
 .start-content p{margin:0 0 24px;color:var(--muted);font-size:16px}
 .start-screen.hidden{display:none}
 .bubbles{position:absolute;inset:0;pointer-events:none}
-.bubble{pointer-events:auto;position:absolute;border-radius:999px;border:0;padding:18px 22px;font-size:20px;background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));color:#fff;box-shadow:0 8px 20px rgba(2,6,23,0.5);cursor:pointer;transition:transform .2s,box-shadow .2s}
+.bubble{pointer-events:auto;position:absolute;border-radius:999px;border:0;padding:18px 22px;font-size:20px;background:linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02));color:#fff;box-shadow:0 8px 20px rgba(2,6,23,0.5);cursor:pointer;transition:all .3s ease}
 .bubble:active{transform:scale(.95)}
+.bubble:hover{background:linear-gradient(180deg,rgba(255,255,255,0.12),rgba(255,255,255,0.06));transform:translateY(-2px);box-shadow:0 12px 28px rgba(2,6,23,0.7)}
+.bubble.disabled{background:linear-gradient(180deg,rgba(38,208,123,0.3),rgba(38,208,123,0.1));border:2px solid var(--good);color:#fff;cursor:default;transform:scale(0.9)}
+.bubble.disabled:hover{transform:scale(0.9)}
 .bubble.big{padding:22px 26px;font-size:22px}
 
 /* floating variants */
